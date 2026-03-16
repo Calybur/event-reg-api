@@ -11,3 +11,26 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Event {
+  id        Int        @id @default(autoincrement())
+  name      String
+  startDate DateTime   @map("start_date")
+  capacity  Int
+  attendees Attendee[]
+
+  @@map("events")
+}
+
+model Attendee {
+  id         Int    @id @default(autoincrement())
+  eventId    Int    @map("event_id")
+  email      String
+  name       String
+  ticketCode String @unique @map("ticket_code")
+  event      Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@unique([eventId, email])
+  @@map("attendees")
+}
