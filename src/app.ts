@@ -1,5 +1,6 @@
 import express from "express";
 import pinoHttp from "pino-http";
+import { eventsRouter } from "./modules/events/events.routes";
 
 export const app = express();
 
@@ -9,6 +10,8 @@ app.use(
     level: process.env.LOG_LEVEL ?? "info",
   }),
 );
+
+app.use("/api/events", eventsRouter);
 
 app.get("/health", (_req, res) => {
   res.status(200).json({
