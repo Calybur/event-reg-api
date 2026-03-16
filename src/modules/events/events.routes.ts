@@ -1,6 +1,10 @@
 import { Router } from "express";
-import { getUpcomingEventsHandler } from "./events.controller";
+import {
+	getUpcomingEventsHandler,
+	registerForEventHandler,
+} from "./events.controller";
 
 export const eventsRouter = Router();
 
 eventsRouter.get("/", getUpcomingEventsHandler);
+eventsRouter.post("/:id/register", registerForEventHandler);
