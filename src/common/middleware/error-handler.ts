@@ -3,8 +3,35 @@ import { ZodError, z } from "zod";
 import { logger } from "../../lib/logger";
 import { AppError, ValidationAppError } from "../errors";
 
+const isMalformedJsonError = (err: unknown): err is SyntaxError & { status: number; body: unknown } => {
+  return err instanceof SyntaxError
+    && typeof err === "object"
+    && err !== null
+    && "status" in err
+    && "body" in err
+    && (err as { status?: unknown }).status === 400;
+};
+
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   void _next;
+
+  if (isMalformedJsonError(err)) {
+    logger.warn(
+      {
+        method: req.method,
+        path: req.originalUrl,
+      },
+      "Malformed JSON body",
+    );
+    res.status(400).json({
+      error: {
+        code: "INVALID_JSON_BODY",
+        message: "Malformed JSON body",
+        details: null,
+      },
+    });
+    return;
+  }
 
   if (err instanceof ZodError) {
     const validationError = new ValidationAppError(z.treeifyError(err));
