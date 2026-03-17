@@ -10,6 +10,17 @@ app.use(express.json());
 app.use(
   pinoHttp({
     logger,
+    serializers: {
+      req: (req) => ({
+        method: req.method,
+        path: req.url,
+      }),
+      res: (res) => ({
+        statusCode: res.statusCode,
+      }),
+    },
+    customSuccessMessage: () => "request handled",
+    customErrorMessage: () => "request failed",
   }),
 );
 
