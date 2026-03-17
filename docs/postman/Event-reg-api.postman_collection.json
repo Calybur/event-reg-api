@@ -1,0 +1,50 @@
+{
+  "info": {
+    "_postman_id": "453c8596-3139-4c33-bdba-5989b362b50c",
+    "name": "Event-reg-api",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "46073072",
+    "_collection_link": "https://go.postman.co/collection/46073072-453c8596-3139-4c33-bdba-5989b362b50c?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "GET",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "POST",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"name\": \"Jani\",\r\n    \"email\": \"fwefwe@gmail.com\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/events/40/register",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "events",
+            "40",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
