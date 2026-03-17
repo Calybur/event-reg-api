@@ -6,6 +6,12 @@ import type { EventWithAttendeeCount } from "./events.types";
 
 const TICKET_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
+const maskEmail = (email: string): string => {
+  const [localPart = "", domain = ""] = email.split("@");
+  const localVisible = localPart.slice(0, 2);
+  return `${localVisible}***@${domain}`;
+};
+
 const generateTicketCode = (): string => {
   let code = "TCK-";
 
@@ -80,6 +86,12 @@ export const registerAttendeeForEvent = async (
 
     const lockedEvent = lockedRows[0];
     if (!lockedEvent) {
+      logger.warn(
+        {
+          eventId: input.eventId,
+        },
+        "Registration rejected: event not found",
+      );
       throw new RegistrationError("EVENT_NOT_FOUND");
     }
 
@@ -109,6 +121,13 @@ export const registerAttendeeForEvent = async (
     });
 
     if (existingRegistration) {
+      logger.info(
+        {
+          eventId: input.eventId,
+          emailMasked: maskEmail(input.email),
+        },
+        "Registration rejected: attendee already registered",
+      );
       throw new RegistrationError("ALREADY_REGISTERED");
     }
 
@@ -123,6 +142,16 @@ export const registerAttendeeForEvent = async (
           },
         });
 
+        logger.info(
+          {
+            eventId: createdAttendee.eventId,
+            attendeeId: createdAttendee.id,
+            emailMasked: maskEmail(createdAttendee.email),
+            ticketSuffix: createdAttendee.ticketCode.slice(-4),
+          },
+          "Registration completed",
+        );
+
         return {
           eventId: createdAttendee.eventId,
           email: createdAttendee.email,
@@ -134,6 +163,12 @@ export const registerAttendeeForEvent = async (
           error instanceof Prisma.PrismaClientKnownRequestError
           && error.code === "P2002"
         ) {
+          logger.warn(
+            {
+              eventId: input.eventId,
+            },
+            "Ticket code collision detected, retrying",
+          );
           continue;
         }
 

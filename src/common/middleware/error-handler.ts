@@ -1,12 +1,21 @@
 import type { ErrorRequestHandler } from "express";
-import { ZodError } from "zod";
+import { ZodError, z } from "zod";
+import { logger } from "../../lib/logger";
 import { AppError, ValidationAppError } from "../errors";
 
-export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   void _next;
 
   if (err instanceof ZodError) {
-    const validationError = new ValidationAppError(err.flatten());
+    const validationError = new ValidationAppError(z.treeifyError(err));
+    logger.warn(
+      {
+        method: req.method,
+        path: req.originalUrl,
+        details: validationError.details,
+      },
+      "Request validation failed",
+    );
     res.status(validationError.statusCode).json({
       error: {
         code: validationError.code,
@@ -18,6 +27,15 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   }
 
   if (err instanceof AppError) {
+    logger.warn(
+      {
+        method: req.method,
+        path: req.originalUrl,
+        code: err.code,
+        details: err.details ?? null,
+      },
+      err.message,
+    );
     res.status(err.statusCode).json({
       error: {
         code: err.code,
@@ -27,6 +45,15 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     });
     return;
   }
+
+  logger.error(
+    {
+      method: req.method,
+      path: req.originalUrl,
+      err,
+    },
+    "Unhandled error",
+  );
 
   res.status(500).json({
     error: {
