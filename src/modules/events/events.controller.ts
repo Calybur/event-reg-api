@@ -1,5 +1,10 @@
 import type { Request, Response } from "express";
+import { AppError } from "../../common/errors";
 import { toEventListItemDto } from "./events.dto";
+import {
+  registerEventBodySchema,
+  registerEventParamsSchema,
+} from "./events.schemas";
 import {
   listUpcomingEvents,
   registerAttendeeForEvent,
@@ -15,36 +20,14 @@ export const getUpcomingEventsHandler = async (_req: Request, res: Response): Pr
 };
 
 export const registerForEventHandler = async (req: Request, res: Response): Promise<void> => {
-  const eventId = Number(req.params.id);
-  const body = req.body as {
-    email?: unknown;
-    name?: unknown;
-  };
-
-  if (!Number.isInteger(eventId) || eventId <= 0) {
-    res.status(400).json({
-      error: "Invalid event id",
-    });
-    return;
-  }
-
-  if (
-    typeof body.email !== "string"
-    || typeof body.name !== "string"
-    || body.email.trim().length === 0
-    || body.name.trim().length === 0
-  ) {
-    res.status(400).json({
-      error: "Email and name are required",
-    });
-    return;
-  }
+  const { id: eventId } = registerEventParamsSchema.parse(req.params);
+  const body = registerEventBodySchema.parse(req.body);
 
   try {
     const registration = await registerAttendeeForEvent({
       eventId,
-      email: body.email.trim().toLowerCase(),
-      name: body.name.trim(),
+      email: body.email,
+      name: body.name,
     });
 
     res.status(201).json({
@@ -53,29 +36,23 @@ export const registerForEventHandler = async (req: Request, res: Response): Prom
   } catch (error: unknown) {
     if (error instanceof RegistrationError) {
       if (error.code === "EVENT_NOT_FOUND") {
-        res.status(404).json({
-          error: "Event not found",
-        });
-        return;
+        throw new AppError(404, "EVENT_NOT_FOUND", null, "Event not found");
       }
 
       if (error.code === "EVENT_FULL") {
-        res.status(409).json({
-          error: "Event is full",
-        });
-        return;
+        throw new AppError(409, "EVENT_FULL", null, "Event is full");
       }
 
       if (error.code === "ALREADY_REGISTERED") {
-        res.status(409).json({
-          error: "Attendee is already registered for this event",
-        });
-        return;
+        throw new AppError(
+          409,
+          "ALREADY_REGISTERED",
+          null,
+          "Attendee is already registered for this event",
+        );
       }
     }
 
-    res.status(500).json({
-      error: "Internal server error",
-    });
+    throw error;
   }
 };
