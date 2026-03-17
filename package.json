@@ -12,7 +12,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "seed:events": "tsx src/scripts/seed-events-from-dummy.ts"
+    "seed:events": "tsx src/scripts/seed-events-from-dummy.ts",
+    "test:race": "tsx src/scripts/test-race-condition.ts"
   },
   "repository": {
     "type": "git",

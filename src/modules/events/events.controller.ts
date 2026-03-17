@@ -8,8 +8,8 @@ import {
 import {
   listUpcomingEvents,
   registerAttendeeForEvent,
-  RegistrationError,
 } from "./events.service";
+import { RegistrationError } from "./events.registration";
 
 export const getUpcomingEventsHandler = async (_req: Request, res: Response): Promise<void> => {
   const events = await listUpcomingEvents();
