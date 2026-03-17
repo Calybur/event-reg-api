@@ -11,6 +11,28 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d event_reg_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: event-reg-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      LOG_LEVEL: info
+      LOG_HTTP_VERBOSE: "false"
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/event_reg_db?schema=public
+    ports:
+      - "${API_PORT:-3000}:3000"
 
 volumes:
   postgres_data:
