@@ -1,47 +1,13 @@
-import { randomInt } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { logger } from "../../lib/logger";
 import { prisma } from "../../lib/prisma";
+import {
+  type RegisterAttendeeInput,
+  type RegisterAttendeeResult,
+  RegistrationError,
+} from "./events.registration";
 import type { EventWithAttendeeCount } from "./events.types";
-
-const TICKET_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-const maskEmail = (email: string): string => {
-  const [localPart = "", domain = ""] = email.split("@");
-  const localVisible = localPart.slice(0, 2);
-  return `${localVisible}***@${domain}`;
-};
-
-const generateTicketCode = (): string => {
-  let code = "TCK-";
-
-  for (let i = 0; i < 8; i += 1) {
-    code += TICKET_ALPHABET[randomInt(0, TICKET_ALPHABET.length)];
-  }
-
-  return code;
-};
-
-type RegisterAttendeeInput = {
-  eventId: number;
-  email: string;
-  name: string;
-};
-
-export type RegisterAttendeeResult = {
-  eventId: number;
-  email: string;
-  name: string;
-  ticketCode: string;
-};
-
-export class RegistrationError extends Error {
-  constructor(
-    public readonly code: "EVENT_NOT_FOUND" | "EVENT_FULL" | "ALREADY_REGISTERED",
-  ) {
-    super(code);
-  }
-}
+import { generateTicketCode, maskEmail } from "./events.utils";
 
 export const listUpcomingEvents = async (): Promise<EventWithAttendeeCount[]> => {
   const now = new Date();
