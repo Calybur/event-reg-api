@@ -5,24 +5,31 @@ import { logger } from "./lib/logger";
 import { eventsRouter } from "./modules/events/events.routes";
 
 export const app = express();
+const isHttpVerbose = process.env.LOG_HTTP_VERBOSE === "true";
 
-app.use(express.json());
-app.use(
-  pinoHttp({
+const httpLoggerOptions = isHttpVerbose
+  ? {
+    logger,
+    customSuccessMessage: () => "request handled",
+    customErrorMessage: () => "request failed",
+  }
+  : {
     logger,
     serializers: {
-      req: (req) => ({
+      req: (req: express.Request) => ({
         method: req.method,
         path: req.url,
       }),
-      res: (res) => ({
+      res: (res: express.Response) => ({
         statusCode: res.statusCode,
       }),
     },
     customSuccessMessage: () => "request handled",
     customErrorMessage: () => "request failed",
-  }),
-);
+  };
+
+app.use(express.json());
+app.use(pinoHttp(httpLoggerOptions));
 
 app.use("/api/events", eventsRouter);
 
