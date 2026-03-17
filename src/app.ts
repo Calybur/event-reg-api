@@ -1,6 +1,7 @@
 import express from "express";
 import pinoHttp from "pino-http";
 import { errorHandler } from "./common/middleware/error-handler";
+import { logger } from "./lib/logger";
 import { eventsRouter } from "./modules/events/events.routes";
 
 export const app = express();
@@ -8,7 +9,7 @@ export const app = express();
 app.use(express.json());
 app.use(
   pinoHttp({
-    level: process.env.LOG_LEVEL ?? "info",
+    logger,
   }),
 );
 

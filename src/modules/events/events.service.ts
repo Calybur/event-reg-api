@@ -1,5 +1,6 @@
 import { randomInt } from "node:crypto";
 import { Prisma } from "@prisma/client";
+import { logger } from "../../lib/logger";
 import { prisma } from "../../lib/prisma";
 import type { EventWithAttendeeCount } from "./events.types";
 
@@ -87,6 +88,14 @@ export const registerAttendeeForEvent = async (
     });
 
     if (attendeeCount >= lockedEvent.capacity) {
+      logger.warn(
+        {
+          eventId: input.eventId,
+          capacity: lockedEvent.capacity,
+          attendeeCount,
+        },
+        "Event is already full, registration rejected",
+      );
       throw new RegistrationError("EVENT_FULL");
     }
 
